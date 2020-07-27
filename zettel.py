@@ -4,15 +4,26 @@ import re
 #import subprocess
 import os
 import json
-# import argparse
+import argparse
 
 class Zettel:
 
     def __init__(self):
-        pass
+        self.cli()
+        self.path = os.getcwd()
+        self.tags = self.loadJson(self.path + "/.tags.json")
+
+        if self.args.u:
+            self.tags = self.getAllTags()
+            self.saveToJson(self.path + "/.tags.json", self.tags)
+
+        #self.tags = self.getAllTags()
+        print(self.tags)
 
     def cli(self):
-        pass
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-u", action="store_true")
+        self.args = parser.parse_args()
 
     def getTagsFromAFile(self, File):
         pattern = r"\[\[[a-zA-Z0-9 ]+]]"
@@ -34,27 +45,29 @@ class Zettel:
 
     def getAllTags(self):
         dics = []
-        for fil in os.listdir("."):
+        for fil in os.listdir(self.path):
             if fil[-2:] == "md":
-                dics += getTagsFromAFile(fil)
+                dics += self.getTagsFromAFile(fil)
         return dics
 
 
-    def safeToJson(self, storagePath, data):
+    def saveToJson(self, storagePath, data):
         with open(storagePath, "w") as json_file:
             json.dump(data, json_file, indent=4)
         return 0 
 
 
     def loadJson(self, storagePath):
+        if not os.path.exists(storagePath):
+            with open(storagePath, "w") as json_file:
+                tmp = []
+                json.dump(tmp, json_file, indent=4)
         with open(storagePath) as json_file:
             res = json.load(json_file)
         return res
 
 
 zet = Zettel()
-res = zet.getAllTags()
-print(res)
 
 #res = getTagsFromAFile("text")
 #subprocess.call(["vim", "+{}".format(res[0]["lineNumber"]), "text"])
